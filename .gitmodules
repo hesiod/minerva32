@@ -1,0 +1,3 @@
+[submodule "thirdparty/riscv-compliance"]
+	path = thirdparty/riscv-compliance
+	url = https://github.com/riscv/riscv-compliance.git

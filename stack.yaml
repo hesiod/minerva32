@@ -1,0 +1,4 @@
+resolver: lts-12.19
+packages:
+- .
+compiler-check: newer-minor

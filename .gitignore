@@ -6,3 +6,4 @@ vhdl
 *.asc
 *.blif
 .stack-work
+Setup.hs

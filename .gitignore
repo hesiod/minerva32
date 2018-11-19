@@ -5,3 +5,4 @@ verilog
 vhdl
 *.asc
 *.blif
+.stack-work

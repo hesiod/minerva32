@@ -7,3 +7,4 @@ vhdl
 *.blif
 .stack-work
 Setup.hs
+*.cabal

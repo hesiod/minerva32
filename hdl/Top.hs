@@ -1,6 +1,6 @@
-module Top 
-    (topEntity)
-where
+module Top (
+    decodeRig, topEntity
+) where
 
 import Types
 import Stage.InstrDecode
@@ -14,4 +14,4 @@ decodeRig instr = decoded
         alwaysTrue = fromList [True]
 
 topEntity :: SystemClockReset => Signal System Instruction -> Signal System InstrDescr
-topEntity = decodeRig'
+topEntity = decodeRig

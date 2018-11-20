@@ -25,3 +25,23 @@ library:
   dependencies:
   - clash-prelude
   - data-default-class
+  - ghc-typelits-natnormalise
+  - ghc-typelits-extra
+  - deepseq
+  exposed-modules:
+  - Types
+  - Stage.InstrDecode
+  - Top
+
+tests:
+  goldy:
+    main: Test.hs
+    source-dirs:
+    - test
+    dependencies:
+    - minerva32
+    - clash-prelude
+    - tasty
+    - tasty-golden
+    - binary
+    - bytestring

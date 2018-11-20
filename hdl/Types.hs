@@ -1,31 +1,34 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds, DeriveGeneric, DeriveAnyClass #-}
 
 module Types where
+
+import GHC.Generics (Generic)
+import Control.DeepSeq
 
 import Clash.Prelude
 import Data.Default.Class
 
-data InstrType = R | I | S | B | U | J | Z deriving (Eq, Show)
+data InstrType = R | I | S | B | U | J | Z deriving (Eq, Show, Generic, NFData)
 
-data Opcode = LOAD | STORE | LUI | AUIPC | JAL | JALR | BRANCH | IARITH | ARITH | INVALID deriving (Eq, Show)
+data Opcode = LOAD | STORE | LUI | AUIPC | JAL | JALR | BRANCH | IARITH | ARITH | INVALID deriving (Eq, Show, Generic, NFData)
 
-data Width = Byte | HalfWord | Word deriving (Eq, Show)
+data Width = Byte | HalfWord | Word deriving (Eq, Show, Generic, NFData)
 
---data AluOp = ADD | SUB | SLL | SLT | SLTU | XOR | OR | AND | SRL | SRA deriving (Eq, Show)
-data AluOp = Add | Sub | Sll | Slt | Sltu | Xor | Or | And | Srl | Sra deriving (Eq, Show)
-data AluSrc = Zero | Rs | Imm12 | Imm20 | OffImm12 | OffImm20 | Pc deriving (Eq, Show)
+--data AluOp = ADD | SUB | SLL | SLT | SLTU | XOR | OR | AND | SRL | SRA deriving (Eq, Show, Generic, NFData)
+data AluOp = Add | Sub | Sll | Slt | Sltu | Xor | Or | And | Srl | Sra deriving (Eq, Show, Generic, NFData)
+data AluSrc = Zero | Rs | Imm12 | Imm20 | OffImm12 | OffImm20 | Pc deriving (Eq, Show, Generic, NFData)
 
-data JumpType = Jump | Branch deriving (Eq, Show)
+data JumpType = Jump | Branch deriving (Eq, Show, Generic, NFData)
 
-data WritebackSrc = WbPc | WbAluRes | WbMem deriving (Eq, Show)
+data WritebackSrc = WbPc | WbAluRes | WbMem deriving (Eq, Show, Generic, NFData)
 
-data BranchType = EQ | NE | LT | GE | LTU | GEU deriving (Eq, Show)
+data BranchType = EQ | NE | LT | GE | LTU | GEU deriving (Eq, Show, Generic, NFData)
 
-data MemoryRequest = MemWrite | MemRead deriving (Eq, Show)
+data MemoryRequest = MemWrite | MemRead deriving (Eq, Show, Generic, NFData)
 
 type RegisterIndex = Index 32
 
-newtype Instruction = Instruction (BitVector 32)
+newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData)
 
 data InterInstr = InterInstr {
     opcode :: Opcode,
@@ -35,16 +38,16 @@ data InterInstr = InterInstr {
     rs1 :: RegisterIndex,
     rs2 :: RegisterIndex,
     rd :: RegisterIndex
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic, NFData)
 
 instance Default InterInstr where
-    def = InterInstr ARITH zeroBits zeroBits zeroBits minBound minBound minBound
+    def = InterInstr INVALID zeroBits zeroBits zeroBits minBound minBound minBound
 
 data AluCtrl = AluCtrl {
     aluOp :: AluOp,
     aluSrc1 :: AluSrc,
     aluSrc2 :: AluSrc
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic, NFData)
 
 instance Default AluCtrl where
     def = AluCtrl Add Zero Zero
@@ -56,7 +59,7 @@ data InstrDescr = InstrDescr {
     jumpType :: Maybe JumpType,
     writebackSrc :: Maybe WritebackSrc,
     memoryRequest :: Maybe MemoryRequest
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Generic, NFData)
 
 instance Default InstrDescr where
     def = InstrDescr def def Nothing Nothing Nothing Nothing

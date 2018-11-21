@@ -129,13 +129,14 @@ decodeBasicArith _ funct7_5 funct3 = case funct3 of
 decodeArith :: InterInstr -> AluOp
 decodeArith InterInstr{..} = decodeBasicArith (opcode == IARITH) (funct7 ! 5) funct3
 
-decode :: Instruction -> InstrDescr
-decode (interDecode -> inter@InterInstr{..}) = InstrDescr {
+decode :: FetchResults -> InstrDescr
+decode (FetchResults (interDecode -> inter@InterInstr{..}) pc) = InstrDescr {
             inter = inter,
             writebackSrc = writeback opcode,
             memoryRequest = memrequest opcode,
             jumpType = jumptype opcode,
-            aluCtrl = alu opcode
+            aluCtrl = alu opcode,
+            pc = pc
         }
     where
         --inter@InterInstr{..} = interDecode instr
@@ -174,5 +175,5 @@ decode (interDecode -> inter@InterInstr{..}) = InstrDescr {
         alu ARITH = AluCtrl (decodeArith inter) Rs Rs
         alu INVALID = def
 
-decodeStage :: DataFlow dom Bool Bool Instruction InstrDescr
+decodeStage :: DataFlow dom Bool Bool FetchResults InstrDescr
 decodeStage = pureDF decode

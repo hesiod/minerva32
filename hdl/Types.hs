@@ -3,10 +3,10 @@
 module Types where
 
 import GHC.Generics (Generic)
-import Control.DeepSeq
+import Control.DeepSeq (NFData)
 
 import Clash.Prelude
-import Data.Default.Class
+import Data.Default.Class (Default(..))
 
 data InstrType = R | I | S | B | U | J | Z deriving (Eq, Show, Generic, NFData)
 
@@ -77,7 +77,9 @@ data FetchResults = FetchResults {
 data ExecuteResults = ExecuteResults {
     aluRes :: MWord,
     doJump :: Bit
-    } deriving (Eq, Show, Generic, NFData, Default)
+    } deriving (Eq, Show, Generic, NFData)
+instance Default ExecuteResults where
+    def = ExecuteResults zeroBits 0
 
 data ForwardRequest = ForwardRequest {
     req_rs1 :: RegisterIndex,

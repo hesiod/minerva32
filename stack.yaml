@@ -1,4 +1,13 @@
-resolver: lts-12.19
+resolver: nightly-2018-11-21
 packages:
 - .
+allow-newer: true
+extra-deps:
+- git: git@github.com:clash-lang/clash-compiler.git
+  commit: 67d36495cc108afad767e92d1ee21e12411cc9e2
+  extra-dep: false
+  subdirs:
+  - clash-ghc
+  - clash-lib
+  - clash-prelude
 compiler-check: newer-minor

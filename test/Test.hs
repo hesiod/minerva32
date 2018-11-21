@@ -5,38 +5,40 @@ module Main where
 import Test.Tasty
 import Test.Tasty.Golden
 
-import Data.ByteString.Lazy as BS
+import qualified Data.ByteString.Lazy as BS
 import Data.Binary.Get as G
 import Data.Word
 
 import Clash.Prelude
+import Clash.Explicit.Testbench
+import qualified Prelude (zip)
 
 import Top
 import Types
 
-getWords :: Get [Word32]
-getWords = do
-    empty <- isEmpty
-    if empty
-    then pure mempty
-    else do
-        w <- getWord32host
-        ws<- getWords
-        pure (w:ws)
+import TestData
+import Util
 
-readWords :: FilePath -> IO [Word32]
-readWords path = do
-    input <- BS.readFile path
-    let len = fromIntegral $ BS.length input
-        len' = len - (len `mod` 4)
-    pure $ runGet (isolate len' getWords) input
-
-testDecode :: [Instruction] -> [InstrDescr]
+testDecode :: [FetchResults] -> [InstrDescr]
 testDecode ilist = simulate decodeRig ilist
+
+tb :: Signal System Bool
+tb = done
+    where
+        vi = $(listToVecTH frs)
+        vo = $(listToVecTH out)
+        tinput = stimuliGenerator clk rst vi
+        toutput = outputVerifier clk rst vo
+        done = toutput (withClockReset clk rst $ decodeRig tinput)
+        clk = tbSystemClockGen (not <$> done)
+        rst = systemResetGen
+
+topEntity :: Signal System Bool
+topEntity = tb
 
 main :: IO ()
 main = do
     ws <- readWords "test/dummy.bin"
     print ws
-    let ins = fmap (Instruction . fromIntegral) ws
+    let ins = fmap (\(pc, i) -> FetchResults (Instruction (fromIntegral i :: BitVector 32)) pc) $ Prelude.zip [0,4..] ws
     print $ testDecode ins

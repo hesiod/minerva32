@@ -18,15 +18,16 @@ data Width = Byte | HalfWord | Word deriving (Eq, Show, Generic, NFData)
 data AluOp = Add | Sub | Sll | Slt | Sltu | Xor | Or | And | Srl | Sra deriving (Eq, Show, Generic, NFData)
 data AluSrc = Zero | Rs | Imm12 | Imm20 | OffImm12 | OffImm20 | Pc deriving (Eq, Show, Generic, NFData)
 
-data JumpType = Jump | Branch deriving (Eq, Show, Generic, NFData)
+data JumpType = Jump | Branch BranchType deriving (Eq, Show, Generic, NFData)
 
 data WritebackSrc = WbPc | WbAluRes | WbMem deriving (Eq, Show, Generic, NFData)
 
-data BranchType = EQ | NE | LT | GE | LTU | GEU deriving (Eq, Show, Generic, NFData)
+data BranchType = B_EQ | B_NE | B_LT | B_GE | B_LTU | B_GEU deriving (Eq, Show, Generic, NFData)
 
 data MemoryRequest = MemWrite | MemRead deriving (Eq, Show, Generic, NFData)
 
 type RegisterIndex = Index 32
+type MWord = BitVector 32
 
 newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData)
 
@@ -55,12 +56,11 @@ instance Default AluCtrl where
 data InstrDescr = InstrDescr {
     inter :: InterInstr,
     aluCtrl :: AluCtrl,
-    branchType :: Maybe BranchType,
     jumpType :: Maybe JumpType,
     writebackSrc :: Maybe WritebackSrc,
-    memoryRequest :: Maybe MemoryRequest
+    memoryRequest :: Maybe MemoryRequest,
+    pc :: MWord
     } deriving (Eq, Show, Generic, NFData)
 
 instance Default InstrDescr where
-    def = InstrDescr def def Nothing Nothing Nothing Nothing
-    
+    def = InstrDescr def def Nothing Nothing Nothing def

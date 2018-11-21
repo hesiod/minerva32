@@ -30,13 +30,13 @@ decodeWidth 0b010 = Word
 decodeWidth _ = Word
 
 decodeBranchType :: BitVector 3 -> BranchType
-decodeBranchType 0b000 = Types.EQ
-decodeBranchType 0b001 = NE
-decodeBranchType 0b100 = Types.LT
-decodeBranchType 0b101 = GE
-decodeBranchType 0b110 = LTU
-decodeBranchType 0b111 = GEU
-decodeBranchType _ = Types.EQ -- shouldnt occur
+decodeBranchType 0b000 = B_EQ
+decodeBranchType 0b001 = B_NE
+decodeBranchType 0b100 = B_LT
+decodeBranchType 0b101 = B_GE
+decodeBranchType 0b110 = B_LTU
+decodeBranchType 0b111 = B_GEU
+decodeBranchType _ = B_EQ -- shouldnt occur
 
 instrType :: Opcode -> InstrType
 instrType LOAD = I
@@ -135,8 +135,7 @@ decode (interDecode -> inter@InterInstr{..}) = InstrDescr {
             writebackSrc = writeback opcode,
             memoryRequest = memrequest opcode,
             jumpType = jumptype opcode,
-            aluCtrl = alu opcode,
-            branchType = Nothing
+            aluCtrl = alu opcode
         }
     where
         --inter@InterInstr{..} = interDecode instr
@@ -159,7 +158,7 @@ decode (interDecode -> inter@InterInstr{..}) = InstrDescr {
 
         jumptype JAL = Just Jump
         jumptype JALR = Just Jump
-        jumptype BRANCH = Just Branch
+        jumptype BRANCH = Just . Branch . decodeBranchType $ funct3
         jumptype _ = Nothing
 
         --branchtype = if opcode == BRANCH then Just (decodeBranchType $ slice )

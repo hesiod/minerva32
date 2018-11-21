@@ -1,3 +1,6 @@
 [submodule "thirdparty/riscv-compliance"]
 	path = thirdparty/riscv-compliance
 	url = https://github.com/riscv/riscv-compliance.git
+[submodule "thirdparty/zephyr"]
+	path = thirdparty/zephyr
+	url = https://github.com/zephyrproject-rtos/zephyr.git

@@ -64,3 +64,26 @@ data InstrDescr = InstrDescr {
 
 instance Default InstrDescr where
     def = InstrDescr def def Nothing Nothing Nothing def
+
+newtype RegisterFile = RegisterFile (Vec 32 MWord)
+
+data FetchResults = FetchResults {
+    instruction :: Instruction,
+    fetchedPc :: MWord
+    } deriving (Generic, NFData)
+
+--data DecodeResults = DecodeResults {}
+
+data ExecuteResults = ExecuteResults {
+    aluRes :: MWord,
+    doJump :: Bit
+    } deriving (Eq, Show, Generic, NFData, Default)
+
+data ForwardRequest = ForwardRequest {
+    req_rs1 :: RegisterIndex,
+    req_rs2 :: RegisterIndex
+    } deriving (Eq, Show, Generic, NFData)
+data ForwardResponse = ForwardResponse {
+    vrs1 :: MWord,
+    vrs2 :: MWord
+    } deriving (Eq, Show, Generic, NFData)

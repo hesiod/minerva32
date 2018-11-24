@@ -47,22 +47,35 @@ aluSelect InstrDescr{pc,inter,aluCtrl} (vrs1, vrs2) = (select (aluSrc1 aluCtrl) 
         select Imm20 _ = (slice d31 d12 . immediate $ inter) ++# zeroBits
         select OffImm20 _ = pack $ resize (unpack (slice d20 d0 . immediate $ inter) :: Signed 21)
 
+
+dram :: HiddenClockReset dom gated synchronous => Signal dom SPAddr -> Signal dom (Maybe (SPAddr, SPData)) -> Signal dom SPData
+dram = asyncRamPow2
+
+writeMux :: InstrDescr -> MWord -> MWord -> Maybe (SPAddr, SPData)
+writeMux InstrDescr{..} alu_res vmrs = case memoryRequest of
+    Just MemWrite -> Just (resize (unpack alu_res) :: SPAddr, resize (unpack vmrs) :: SPData)
+    _ -> Nothing
+
 execute :: InstrDescr -> Operands -> ExecuteResults
-execute descr@InstrDescr{..} vrs = ExecuteResults alu_res do_jump
+execute descr@InstrDescr{..} vrs = ExecuteResults descr alu_res do_jump
     where
         ops = aluSelect descr vrs
         alu_res = runAlu (aluOp aluCtrl) ops
         do_jump = case jumpType of
-            Nothing -> 0
-            Just Jump -> 1
-            Just (Branch branchtype) -> branchCompare branchtype ops
+            Nothing -> Nothing
+            Just Jump -> Just alu_res
+            Just (Branch branchtype) -> case branchCompare branchtype ops of
+                0 -> Nothing
+                1 -> Just alu_res
 
-executeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool (InstrDescr, ForwardResponse) (ExecuteResults, ForwardRequest)
+executeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool (InstrDescr, ForwardResponse) (ExecuteResults, ForwardRequest, MWord)
 executeStage = liftDF go
     where 
-        go (unbundle -> (descr, response)) iV iR = (bundle (re, req), iV, iR)
+        go (unbundle -> (descr, response)) iV iR = (bundle (regExecuteResults, req, readResult), iV, iR)
             where
                 vrs = bundle (vrs1 <$> response, vrs2 <$> response)
                 req = uncurry ForwardRequest <$> bundle (fmap (rs1.inter) descr, fmap (rs2.inter) descr)
-                re = regEn def ((&&) <$> iV <*> iR) (execute <$> descr <*> vrs)
+                executeResults = execute <$> descr <*> vrs
+                readResult = dram (resize.unpack.erAluRes <$> executeResults) (writeMux <$> descr <*> (erAluRes <$> executeResults) <*> (vrs2 <$> response))
+                regExecuteResults = regEn def ((&&) <$> iV <*> iR) executeResults
 

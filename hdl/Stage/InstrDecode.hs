@@ -180,6 +180,7 @@ decode (FetchResults (interDecode -> inter@InterInstr{..}) pc) = InstrDescr {
         pc = pc
     }
 
+{-# NOINLINE decodeStage #-}
 decodeStage :: DataFlow dom Bool Bool FetchResults InstrDescr
 decodeStage = pureDF decode
 

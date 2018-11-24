@@ -33,6 +33,8 @@ type DoJump = Maybe MWord
 
 newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData, Lift, ShowX, Undefined)
 
+type RegisterFile = Vec 32 MWord
+
 data InterInstr = InterInstr {
     opcode :: Opcode,
     funct3 :: BitVector 3,
@@ -67,14 +69,10 @@ data InstrDescr = InstrDescr {
 instance Default InstrDescr where
     def = InstrDescr def def Nothing Nothing Nothing def
 
-newtype RegisterFile = RegisterFile (Vec 32 MWord)
-
 data FetchResults = FetchResults {
     instruction :: Instruction,
     fetchedPc :: MWord
     } deriving (Generic, NFData, Lift, ShowX, Undefined)
-
---data DecodeResults = DecodeResults {}
 
 data ExecuteResults = ExecuteResults {
     erInstrDescr :: InstrDescr,
@@ -84,14 +82,6 @@ data ExecuteResults = ExecuteResults {
 instance Default ExecuteResults where
     def = ExecuteResults def zeroBits Nothing
 
-data MemoryResults = MemoryResults {
-    mrInstrDescr :: InstrDescr,
-    mrAluRes :: MWord,
-    mrMemRes :: MWord
-    } deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
-instance Default MemoryResults where
-    def = MemoryResults def zeroBits zeroBits
-
 data ForwardRequest = ForwardRequest {
     req_rs1 :: RegisterIndex,
     req_rs2 :: RegisterIndex
@@ -100,12 +90,6 @@ data ForwardResponse = ForwardResponse {
     vrs1 :: MWord,
     vrs2 :: MWord
     } deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
-
-data CacheRequest = CacheRequest {
-    iaddr :: MWord,
-    daddr :: MWord,
-    drequest :: Maybe MemoryRequest
-    }
 
 type SPAddr = Unsigned 14
 type SPData = BitVector 32

@@ -68,6 +68,7 @@ execute descr@InstrDescr{..} vrs = ExecuteResults descr alu_res do_jump
                 0 -> Nothing
                 1 -> Just alu_res
 
+{-# NOINLINE executeStage #-}
 executeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool (InstrDescr, ForwardResponse) (ExecuteResults, ForwardRequest, MWord)
 executeStage = liftDF go
     where 

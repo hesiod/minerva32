@@ -30,8 +30,10 @@ library:
   - deepseq
   exposed-modules:
   - Types
+  - Stage.InstrFetch
   - Stage.InstrDecode
   - Stage.Execute
+  - Stage.Writeback
   - Top
 
 tests:

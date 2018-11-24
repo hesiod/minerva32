@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 
-module Main where
+module Test where
 
 import Test.Tasty
 import Test.Tasty.Golden

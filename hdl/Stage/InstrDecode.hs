@@ -4,7 +4,7 @@
 
 module Stage.InstrDecode (
     interDecode, decode,
-    decodeStage
+    decodeStage, decodeRig
 )where
 
 import Clash.Prelude
@@ -89,7 +89,7 @@ interDecode (Instruction instr) =
                 opcode = decodeOpcode $ slice d6 d0 instr,
                 funct3 = slice d14 d12 instr,
                 funct7 = def,
-                immediate = (zeroBits :: BitVector 19) ++# (pack $ instr ! 31) ++# (pack $ instr ! 7) ++# slice d30 d25 instr ++# slice d11 d8 instr ++# (zeroBits :: BitVector 1),
+                immediate = (zeroBits :: BitVector 19) ++# pack (instr ! 31) ++# pack (instr ! 7) ++# slice d30 d25 instr ++# slice d11 d8 instr ++# (zeroBits :: BitVector 1),
                 rs1 = unpack $ slice d19 d15 instr,
                 rs2 = unpack $ slice d24 d20 instr,
                 rd = unpack $ slice d11 d7 instr
@@ -107,7 +107,7 @@ interDecode (Instruction instr) =
                 opcode = decodeOpcode $ slice d6 d0 instr,
                 funct3 = def,
                 funct7 = def,
-                immediate = (zeroBits :: BitVector 11) ++# (pack $ instr ! 31) ++# slice d19 d12 instr ++# (pack $ instr ! 20) ++# slice d30 d21 instr ++# (zeroBits :: BitVector 1),
+                immediate = (zeroBits :: BitVector 11) ++# pack (instr ! 31) ++# slice d19 d12 instr ++# pack (instr ! 20) ++# slice d30 d21 instr ++# (zeroBits :: BitVector 1),
                 rs1 = def,
                 rs2 = def,
                 rd = unpack $ slice d11 d7 instr
@@ -129,51 +129,62 @@ decodeBasicArith _ funct7_5 funct3 = case funct3 of
 decodeArith :: InterInstr -> AluOp
 decodeArith InterInstr{..} = decodeBasicArith (opcode == IARITH) (funct7 ! 5) funct3
 
+{-# NOINLINE writeback #-}
+writeback :: Opcode -> Maybe WritebackSrc
+writeback LOAD = Just WbMem
+writeback LUI = Just WbAluRes
+writeback AUIPC = Just WbAluRes
+writeback JAL = Just WbPc
+writeback JALR = Just WbPc
+writeback IARITH = Just WbAluRes
+writeback ARITH = Just WbAluRes
+writeback _ = Nothing
+
+{-# NOINLINE memrequest #-}
+memrequest :: Opcode -> Maybe MemoryRequest
+memrequest opc = case opc of
+    LOAD -> Just MemRead
+    STORE -> Just MemWrite
+    _ -> Nothing
+
+{-# NOINLINE jumptype #-}
+jumptype :: BitVector 3 -> Opcode -> Maybe JumpType
+jumptype f3 opc = case opc of
+    JAL -> Just Jump
+    JALR -> Just Jump
+    BRANCH -> Just . Branch . decodeBranchType $ f3
+    _ -> Nothing
+
+{-# NOINLINE alu #-}
+alu :: InterInstr -> Opcode -> AluCtrl
+alu inter opc = case opc of
+    LOAD -> AluCtrl Add Rs Imm12
+    STORE -> AluCtrl Add Rs Imm12
+    LUI -> AluCtrl Add Zero Imm20
+    AUIPC -> AluCtrl Add Pc Imm20
+    JAL -> AluCtrl Add Pc OffImm20
+    JALR -> AluCtrl Add Rs Imm12
+    BRANCH -> AluCtrl Add Pc OffImm12
+    IARITH -> AluCtrl (decodeArith inter) Rs Imm12
+    ARITH -> AluCtrl (decodeArith inter) Rs Rs
+    INVALID -> def
+
+{-# NOINLINE decode #-}
 decode :: FetchResults -> InstrDescr
 decode (FetchResults (interDecode -> inter@InterInstr{..}) pc) = InstrDescr {
-            inter = inter,
-            writebackSrc = writeback opcode,
-            memoryRequest = memrequest opcode,
-            jumpType = jumptype opcode,
-            aluCtrl = alu opcode,
-            pc = pc
-        }
-    where
-        --inter@InterInstr{..} = interDecode instr
-        --opcode = opcode inter
-        --opc = opcode inter
-        --itype = instrType opcode
-
-        writeback LOAD = Just WbMem
-        writeback LUI = Just WbAluRes
-        writeback AUIPC = Just WbAluRes
-        writeback JAL = Just WbPc
-        writeback JALR = Just WbPc
-        writeback IARITH = Just WbAluRes
-        writeback ARITH = Just WbAluRes
-        writeback _ = Nothing
-
-        memrequest LOAD = Just MemRead
-        memrequest STORE = Just MemWrite
-        memrequest _ = Nothing
-
-        jumptype JAL = Just Jump
-        jumptype JALR = Just Jump
-        jumptype BRANCH = Just . Branch . decodeBranchType $ funct3
-        jumptype _ = Nothing
-
-        --branchtype = if opcode == BRANCH then Just (decodeBranchType $ slice )
-
-        alu LOAD = AluCtrl Add Rs Imm12
-        alu STORE = AluCtrl Add Rs Imm12
-        alu LUI = AluCtrl Add Zero Imm20
-        alu AUIPC = AluCtrl Add Pc Imm20
-        alu JAL = AluCtrl Add Pc OffImm20
-        alu JALR = AluCtrl Add Rs Imm12
-        alu BRANCH = AluCtrl Add Pc OffImm12
-        alu IARITH = AluCtrl (decodeArith inter) Rs Imm12
-        alu ARITH = AluCtrl (decodeArith inter) Rs Rs
-        alu INVALID = def
+        inter = inter,
+        writebackSrc = writeback opcode,
+        memoryRequest = memrequest opcode,
+        jumpType = jumptype funct3 opcode,
+        aluCtrl = alu inter opcode,
+        pc = pc
+    }
 
 decodeStage :: DataFlow dom Bool Bool FetchResults InstrDescr
 decodeStage = pureDF decode
+
+decodeRig :: Signal dom FetchResults -> Signal dom InstrDescr
+decodeRig instr = decoded
+    where
+        (decoded,_,_) = (df decodeStage) instr alwaysTrue alwaysTrue
+        alwaysTrue = fromList [True]

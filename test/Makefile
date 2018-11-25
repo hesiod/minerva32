@@ -2,14 +2,20 @@ PREFIX=riscv64-linux-gnu-
 CC=$(PREFIX)gcc
 LD=$(PREFIX)gcc
 OBJCOPY=$(PREFIX)objcopy
+ASFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding
+CFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding
+LDFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -lgcc -Tlinker.ld
 
-.PHONY: all
+.PHONY: all clean
 
-all: dummy.lit
+all: dummy.lit crt0.o
 dummy: dummy.o
 
 dummy.lit: dummy.bin
-	xxd -g 0 -b $< | grep -E -o -e '[01]{48}' > $@
+	xxd -e $< | xxd -r | xxd -c 4 -g 0 -b - | grep -E -o -e '[01]{32}' > $@
 dummy.bin: dummy
 	$(OBJCOPY) -j .text -O binary $< $@
+	dd if=/dev/null of=$@ bs=1 count=1 seek=16384
 
+clean:
+	$(RM) dummy.o dummy dummy.lit crt0.o

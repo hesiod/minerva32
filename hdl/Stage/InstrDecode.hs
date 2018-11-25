@@ -22,7 +22,19 @@ decodeOpcode 0b1100111 = JALR
 decodeOpcode 0b1100011 = BRANCH
 decodeOpcode 0b0010011 = IARITH
 decodeOpcode 0b0110011 = ARITH
+decodeOpcode 0b0001111 = FENCE
+decodeOpcode 0b1110011 = SYSTEM
 decodeOpcode _ = INVALID
+
+decodeCsr :: BitVector 3 -> SystemOp
+decodeCsr f3 = case f3 of
+    0b000 -> ECallBreak
+    0b001 -> CsrWrite
+    0b010 -> CsrRead
+    0b011 -> CsrClear
+    0b101 -> CsrWriteImmediate
+    0b110 -> CsrReadImmediate
+    0b111 -> CsrClearImmediate
 
 decodeWidth :: BitVector 3 -> Width
 decodeWidth 0b000 = Byte
@@ -50,7 +62,8 @@ instrType BRANCH = B
 instrType ARITH = R
 instrType IARITH = I
 instrType INVALID = Z
-
+instrType SYSTEM = I
+instrType FENCE = Z
 
 interDecode :: Instruction -> InterInstr
 interDecode (Instruction instr) =

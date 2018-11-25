@@ -10,7 +10,9 @@ import Data.Default.Class (Default(..))
 
 data InstrType = R | I | S | B | U | J | Z deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
 
-data Opcode = LOAD | STORE | LUI | AUIPC | JAL | JALR | BRANCH | IARITH | ARITH | INVALID deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
+data Opcode = LOAD | STORE | LUI | AUIPC | JAL | JALR | BRANCH | IARITH | ARITH | FENCE | SYSTEM | INVALID deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
+
+data SystemOp = ECallBreak | CsrRead | CsrWrite | CsrClear | CsrReadImmediate | CsrWriteImmediate | CsrClearImmediate
 
 data Width = Byte | HalfWord | Word deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
 
@@ -30,6 +32,11 @@ type RegisterIndex = Index 32
 type MWord = BitVector 32
 
 type DoJump = Maybe MWord
+newtype Kill = Kill Bool
+
+shouldKill :: Kill -> Bool
+shouldKill (Kill True) = True
+shouldKill _ = False
 
 newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData, Lift, ShowX, Undefined)
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, BinaryLiterals, DataKinds, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, BinaryLiterals, DataKinds, ViewPatterns, NamedFieldPuns #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Normalise #-}
 {-# OPTIONS_GHC -fplugin GHC.TypeLits.Extra.Solver #-}
 
@@ -171,7 +171,7 @@ alu inter opc = case opc of
 
 {-# NOINLINE decode #-}
 decode :: FetchResults -> InstrDescr
-decode (FetchResults (interDecode -> inter@InterInstr{..}) pc) = InstrDescr {
+decode (FetchResults (interDecode -> inter@InterInstr{opcode, funct3}) pc) = InstrDescr {
         inter = inter,
         writebackSrc = writeback opcode,
         memoryRequest = memrequest opcode,
@@ -181,10 +181,15 @@ decode (FetchResults (interDecode -> inter@InterInstr{..}) pc) = InstrDescr {
     }
 
 {-# NOINLINE decodeStage #-}
-decodeStage :: DataFlow dom Bool Bool FetchResults InstrDescr
-decodeStage = pureDF decode
+decodeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool FetchResults InstrDescr
+decodeStage = liftDF go
+    where
+        go fetchResults iV iR = (decoded, iV, iR)
+            where
+                ce = (&&) <$> iV <*> iR
+                decoded = regEn def ce (decode <$> fetchResults)
 
-decodeRig :: Signal dom FetchResults -> Signal dom InstrDescr
+decodeRig :: HiddenClockReset dom gated synchronous => Signal dom FetchResults -> Signal dom InstrDescr
 decodeRig instr = decoded
     where
         (decoded,_,_) = (df decodeStage) instr alwaysTrue alwaysTrue

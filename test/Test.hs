@@ -22,8 +22,10 @@ import Util
 testDecode :: [FetchResults] -> [InstrDescr]
 testDecode ilist = simulate decodeRig ilist
 
-tb :: Signal System Bool
-tb = done
+{-# NOINLINE tb #-}
+{-# ANN tb (defSyn "tb") #-}
+tb :: Clock System Source -> Reset System Asynchronous -> Signal System Bool
+tb = exposeClockReset done
     where
         vi = $(listToVecTH frs)
         vo = $(listToVecTH out)
@@ -32,9 +34,6 @@ tb = done
         done = toutput (withClockReset clk rst $ decodeRig tinput)
         clk = tbSystemClockGen (not <$> done)
         rst = systemResetGen
-
-topEntity :: Signal System Bool
-topEntity = tb
 
 main :: IO ()
 main = do

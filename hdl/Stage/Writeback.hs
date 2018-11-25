@@ -25,7 +25,7 @@ forward :: ExecuteResults -> RegisterFile -> ForwardResponse
 forward executeResults regFile = ForwardResponse (fwd rs1v rdv) (fwd rs2v rdv)
     where
         fwd :: RegisterIndex -> RegisterIndex -> MWord
-        fwd reqidx destidx = if reqidx == destidx then erAluRes executeResults else regFile !! reqidx
+        fwd reqidx destidx = if (writebackSrc.erInstrDescr $ executeResults) == Just WbAluRes && reqidx == destidx then erAluRes executeResults else regFile !! reqidx
         (rs1v, rs2v, rdv) = let ii = inter.erInstrDescr $ executeResults
                             in (rs1 ii, rs2 ii, rd ii)
 
@@ -41,4 +41,4 @@ writebackStage = liftDF go
                     <*> readResult
                     <*> (pc.erInstrDescr <$> executeResults)
                 regFile = let rdv = rd.inter.erInstrDescr <$> executeResults
-                          in regEn def iV (nextRegs <$> rdv <*> wbdata <*> regFile)
+                          in regEn (replicate d32 0xDEADC0DE) iV (nextRegs <$> rdv <*> wbdata <*> regFile)

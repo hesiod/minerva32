@@ -7,6 +7,7 @@ module Stage.InstrDecode (
     decodeStage, decodeRig
 )where
 
+import Data.Maybe
 import Clash.Prelude
 
 import Types
@@ -181,16 +182,17 @@ decode (FetchResults (interDecode -> inter@InterInstr{opcode, funct3}) pc) = Ins
     }
 
 {-# NOINLINE decodeStage #-}
-decodeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool FetchResults InstrDescr
+decodeStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool (FetchResults, Kill) InstrDescr
 decodeStage = liftDF go
     where
-        go fetchResults iV iR = (decoded, iV, iR)
+        go (unbundle -> (fetchResults, kill)) iV iR = (decoded, iV, iR)
             where
-                ce = (&&) <$> iV <*> iR
+                ce = (&&) <$> ((&&) <$> iV <*> iR) <*> (shouldKill <$> kill)
+                oV = register False ce
                 decoded = regEn def ce (decode <$> fetchResults)
 
-decodeRig :: HiddenClockReset dom gated synchronous => Signal dom FetchResults -> Signal dom InstrDescr
-decodeRig instr = decoded
+decodeRig :: HiddenClockReset dom gated synchronous => Signal dom (FetchResults, Kill) -> Signal dom InstrDescr
+decodeRig inval = decoded
     where
-        (decoded,_,_) = (df decodeStage) instr alwaysTrue alwaysTrue
+        (decoded,_,_) = df decodeStage inval alwaysTrue alwaysTrue
         alwaysTrue = fromList [True]

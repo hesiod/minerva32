@@ -24,8 +24,8 @@ cpu = go initiallyInvalid alwaysTrue
             where
                 fdFlow = df $ fetchStage `seqDF` decodeStage
                 --ewFlow = df $ executeStage `seqDF` writebackStage
-                eFlow = df $ executeStage
-                wFlow = df $ writebackStage
+                eFlow = df executeStage
+                wFlow = df writebackStage
                 
                 (descr, fdV, fdR) = fdFlow (erDoJump <$> executeResults) iV eR
                 (eres, eV, eR) = eFlow (bundle (descr, forwardResponse)) fdV wR

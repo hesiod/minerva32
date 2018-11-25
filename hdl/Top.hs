@@ -1,5 +1,5 @@
 module Top (
-    cpu, cpu'
+    cpu, cpu', tb
 ) where
 
 import Types
@@ -10,11 +10,17 @@ import Stage.Writeback
 
 import Clash.Prelude
 
+import Clash.Explicit.Testbench
+
+alwaysTrue :: Signal dom Bool
+alwaysTrue = pure True
+
 {-# NOINLINE cpu #-}
-cpu :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool () RegisterFile
-cpu = liftDF go
+cpu :: HiddenClockReset dom gated synchronous => Signal dom RegisterFile
+cpu = go initiallyInvalid alwaysTrue
     where
-        go _ iV iR = (regFile, wV, wR)
+        initiallyInvalid = register False (pure True)
+        go iV iR = regFile
             where
                 fdFlow = df $ fetchStage `seqDF` decodeStage
                 --ewFlow = df $ executeStage `seqDF` writebackStage
@@ -27,15 +33,17 @@ cpu = liftDF go
                 (wres, wV, wR) = wFlow (bundle (executeResults, forwardRequest, readResult)) eV iR
                 (regFile, forwardResponse) = unbundle wres
 
---Signal System () -> Signal System Bool -> Signal System Bool -> 
+{-# NOINLINE cpu' #-}
+cpu' :: Clock System Source -> Reset System Synchronous -> Signal System RegisterFile
+cpu' = exposeClockReset cpu
 
-{-# ANN cpu' (defSyn "cpu") #-}
-cpu' :: Clock System Source -> Reset System Synchronous -> (Signal System RegisterFile, Signal System Bool, Signal System Bool)
-cpu' clk rst = (exposeClockReset $ df cpu) clk rst (pure ()) alwaysTrue alwaysTrue
+{-# NOINLINE tb #-}
+{-# ANN tb (defSyn "tb") #-}
+tb :: Clock System Source -> Reset System Asynchronous -> Signal System Bool
+tb = exposeClockReset done
     where
-        alwaysTrue = pure True -- fromList [True]
-
-{-
-topEntity :: SystemClockReset => Signal System FetchResults -> Signal System InstrDescr
-topEntity = decodeRig
--}
+        vo = replicate d100 def :: Vec 100 RegisterFile
+        toutput = outputVerifier clk rst vo
+        done = toutput (withClockReset clk rst cpu)
+        clk = tbSystemClockGen (not <$> done)
+        rst = systemResetGen

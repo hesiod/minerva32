@@ -11,13 +11,15 @@ import Clash.Prelude
 
 import Data.Maybe
 
+import Primitives.DSP
+
 import Types
 
 irom :: HiddenClockReset dom gated synchronous => Signal dom (Unsigned 8) -> Signal dom Instruction
 irom raddr = Instruction <$> blockRamFilePow2 "dummy.lit" raddr (pure Nothing)
 
 nextPc :: Signal dom MWord -> Signal dom (Maybe MWord) -> Signal dom MWord
-nextPc current doJump = fromMaybe <$> (current + 4) <*> doJump
+nextPc current doJump = fromMaybe <$> (current `dspAdd` 4) <*> doJump
 
 {-# NOINLINE fetchStage #-}
 fetchStage :: HiddenClockReset dom gated synchronous => DataFlow dom Bool Bool DoJump (FetchResults, Kill)

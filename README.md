@@ -11,7 +11,7 @@ The core is written in Clash, a Haskell dialect that compiles Haskell code direc
 to VHDL or Verilog. The tree contains synthesis scripts to synthesize Clash-generated
 Verilog using Yosys and place-and-route the netlist using arachne-pnr or nextpnr.
 
-minerva32 is not RV32I-compliant yet. The following features are missing:
+minerva32 is not yet RV32I-compliant. The following features are missing:
  - Support for the CSR instructions
  - Support for ECALL/EBREAK
  - Support for LOADs/STOREs with non-word widths (would only require writing a primitive for the UP5K's SPRAM which includes a write mask)

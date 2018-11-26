@@ -1,0 +1,3 @@
+set_io ref_clk 35
+set_io ext_reset 23
+set_io dummyBit 39

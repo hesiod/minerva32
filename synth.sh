@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-yosys -q -s mac.sy
-arachne-pnr -q -r -o mac.asc -d 5k -P sg48 mac.blif
+yosys -t -l mrv.synth.log -s mrv.sy
+nextpnr-ice40 --up5k --pcf mrv.pcf --asc mrv.asc --json mrv.json --freq 30
+#arachne-pnr -p mrv.pcf -r -o mrv.asc -d 5k -P sg48 mrv.blif
 
-#icepack mac.asc mac.bin
-#iceprog mac.bin
+#icepack mrv.asc mrv.bin
+#iceprog mrv.bin
 
-#icetime -tmd up5k mac.asc
+#icetime -tmd up5k mrv.asc

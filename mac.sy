@@ -1,2 +1,0 @@
-read_verilog verilog/MAC/MAC_topEntity.v
-synth_ice40 -json mac.json -blif mac.blif

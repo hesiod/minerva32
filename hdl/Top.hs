@@ -12,6 +12,8 @@ import Clash.Prelude
 
 import Clash.Explicit.Testbench
 
+import Primitives.PLL
+
 alwaysTrue :: Signal dom Bool
 alwaysTrue = pure True
 
@@ -34,15 +36,23 @@ cpu = go initiallyInvalid alwaysTrue
                 (regFile, forwardResponse) = unbundle wres
 
 {-# NOINLINE cpu' #-}
-cpu' :: Clock System Source -> Reset System Synchronous -> Signal System RegisterFile
-cpu' = exposeClockReset cpu
+{-# ANN cpu' (Synthesize {
+    t_name = "cpu",
+    t_inputs = [PortName "ref_clk", PortName "ext_reset"],
+    t_output = PortName "dummyBit"
+    }) #-}
+cpu' :: Clock RefClkDomain Source -> Reset RefClkDomain Asynchronous -> Signal PllDomain Bit
+cpu' sclk srst = withClockReset clk rstSync $ (\rf -> (rf !! 0) ! 0) <$> cpu
+    where
+        (clk, locked) = pll sclk srst
+        rstSync = resetSynchronizer clk (unsafeToAsyncReset locked)
 
 {-# NOINLINE tb #-}
-{-# ANN tb (defSyn "tb") #-}
+{- ANN tb (defSyn "tb") #-}
 tb :: Clock System Source -> Reset System Asynchronous -> Signal System Bool
 tb = exposeClockReset done
     where
-        vo = replicate d100 def :: Vec 100 RegisterFile
+        vo = replicate d1000 def
         toutput = outputVerifier clk rst vo
         done = toutput (withClockReset clk rst cpu)
         clk = tbSystemClockGen (not <$> done)

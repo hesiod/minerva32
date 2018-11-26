@@ -41,4 +41,4 @@ writebackStage = liftDF go
                     <*> readResult
                     <*> (pc.erInstrDescr <$> executeResults)
                 regFile = let rdv = rd.inter.erInstrDescr <$> executeResults
-                          in regEn (replicate d16 0xDEADC0DE) iV (nextRegs <$> rdv <*> wbdata <*> regFile)
+                          in regEn (replicate d32 0xDEADC0DE) iV (nextRegs <$> rdv <*> wbdata <*> regFile)

@@ -40,7 +40,7 @@ shouldKill _ = False
 
 newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData, Lift, ShowX, Undefined)
 
-type RegisterFile = Vec 16 MWord
+type RegisterFile = Vec 32 MWord
 
 data InterInstr = InterInstr {
     opcode :: Opcode,

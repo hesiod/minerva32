@@ -2,9 +2,9 @@ PREFIX=/opt/riscv/bin/riscv32-unknown-elf-
 CC=$(PREFIX)gcc
 LD=$(PREFIX)gcc
 OBJCOPY=$(PREFIX)objcopy
-ASFLAGS=-march=rv32e -mabi=ilp32e -ffreestanding
-CFLAGS=-march=rv32e -mabi=ilp32e -ffreestanding
-LDFLAGS=-march=rv32e -mabi=ilp32e -nostdlib -lgcc -Tlinker.ld -Wl,--build-id=none
+ASFLAGS=-march=rv32i -mabi=ilp32i -ffreestanding
+CFLAGS=-march=rv32i -mabi=ilp32i -ffreestanding
+LDFLAGS=-march=rv32i -mabi=ilp32i -nostdlib -lgcc -Tlinker.ld -Wl,--build-id=none
 
 .PHONY: all clean
 

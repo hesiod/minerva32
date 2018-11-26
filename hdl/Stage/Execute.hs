@@ -49,11 +49,11 @@ aluSelect InstrDescr{pc,inter,aluCtrl} (vrs1, vrs2) = (select (aluSrc1 aluCtrl) 
 
 
 dram :: HiddenClockReset dom gated synchronous => Signal dom SPAddr -> Signal dom (Maybe (SPAddr, SPData)) -> Signal dom SPData
-dram = asyncRamPow2
+dram = blockRamPow2 (repeat 0)
 
 writeMux :: InstrDescr -> MWord -> MWord -> Maybe (SPAddr, SPData)
 writeMux InstrDescr{..} alu_res vmrs = case memoryRequest of
-    Just MemWrite -> Just (resize (unpack alu_res) :: SPAddr, resize (unpack vmrs) :: SPData)
+    Just MemWrite -> Just (resize (unpack $ slice d31 d2 alu_res) :: SPAddr, resize (unpack vmrs) :: SPData)
     _ -> Nothing
 
 execute :: InstrDescr -> Operands -> ExecuteResults

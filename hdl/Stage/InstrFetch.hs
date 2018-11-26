@@ -14,7 +14,7 @@ import Data.Maybe
 import Types
 
 irom :: HiddenClockReset dom gated synchronous => Signal dom (Unsigned 8) -> Signal dom Instruction
-irom = fmap Instruction . romFilePow2 "dummy.lit"
+irom raddr = Instruction <$> blockRamFilePow2 "dummy.lit" raddr (pure Nothing)
 
 nextPc :: Signal dom MWord -> Signal dom (Maybe MWord) -> Signal dom MWord
 nextPc current doJump = fromMaybe <$> (current + 4) <*> doJump

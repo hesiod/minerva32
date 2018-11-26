@@ -181,7 +181,7 @@ alu inter opc = case opc of
     BRANCH -> AluCtrl Add Pc OffImm12
     IARITH -> AluCtrl (decodeArith inter) Rs Imm12
     ARITH -> AluCtrl (decodeArith inter) Rs Rs
-    INVALID -> def
+    _ -> def
 
 {-# NOINLINE decode #-}
 decode :: FetchResults -> InstrDescr

@@ -40,7 +40,7 @@ shouldKill _ = False
 
 newtype Instruction = Instruction (BitVector 32) deriving (Generic, NFData, Lift, ShowX, Undefined)
 
-type RegisterFile = Vec 32 MWord
+type RegisterFile = Vec 16 MWord
 
 data InterInstr = InterInstr {
     opcode :: Opcode,
@@ -98,5 +98,5 @@ data ForwardResponse = ForwardResponse {
     vrs2 :: MWord
     } deriving (Eq, Show, Generic, NFData, Lift, ShowX, Undefined)
 
-type SPAddr = Unsigned 14
+type SPAddr = Unsigned 11
 type SPData = BitVector 32

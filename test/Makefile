@@ -1,10 +1,10 @@
-PREFIX=riscv64-linux-gnu-
+PREFIX=/opt/riscv/bin/riscv32-unknown-elf-
 CC=$(PREFIX)gcc
 LD=$(PREFIX)gcc
 OBJCOPY=$(PREFIX)objcopy
-ASFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding
-CFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding
-LDFLAGS=-march=rv32i -mabi=ilp32 -ffreestanding -nostdlib -lgcc -Tlinker.ld
+ASFLAGS=-march=rv32e -mabi=ilp32e -ffreestanding
+CFLAGS=-march=rv32e -mabi=ilp32e -ffreestanding
+LDFLAGS=-march=rv32e -mabi=ilp32e -nostdlib -lgcc -Tlinker.ld -Wl,--build-id=none
 
 .PHONY: all clean
 

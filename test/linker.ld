@@ -3,13 +3,14 @@ STARTUP(crt0.o)
 
 MEMORY
 {
-    rom (rxi): ORIGIN = 0x00000000, LENGTH = 64k
-    data (rw): ORIGIN = 0x00100000, LENGTH = 64k
+    rom (rxi): ORIGIN = 0x00000000, LENGTH = 4k
+    data (rw): ORIGIN = 0x00100000, LENGTH = 4k
 }
 
 SECTIONS
 {
     .text : ALIGN(4) {
+        . = 0x0;
         *(.text)
         *(.data)
         *(.rodata)

@@ -1,3 +1,15 @@
+// THIS FILE HAS BEEN ADAPTED FROM https://github.com/pulp-platform/pulpino/blob/master/sw/ref/crt0.riscv.S AND MODIFIED
+
+// Copyright 2017 ETH Zurich and University of Bologna.
+// Copyright and related rights are licensed under the Solderpad Hardware
+// License, Version 0.51 (the “License”); you may not use this file except in
+// compliance with the License.  You may obtain a copy of the License at
+// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
+// or agreed to in writing, software, hardware and materials distributed under
+// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations under the License.
+
 .section .text
 
 reset_handler:
@@ -21,7 +33,7 @@ reset_handler:
   mv x13, x1
   mv x14, x1
   mv x15, x1
-/*mv x16, x1
+  mv x16, x1
   mv x17, x1
   mv x18, x1
   mv x19, x1
@@ -37,7 +49,7 @@ reset_handler:
   mv x29, x1
   mv x30, x1
   mv x31, x1
-*/
+
 
   /* stack initilization */
   la   x2, _stack_start
@@ -46,19 +58,16 @@ _start:
   .global _start
 
   /* clear BSS */
-  la x1, _bss_start
-  la x2, _bss_end
+  la x26, _bss_start
+  la x27, _bss_end
 
-  bge x1, x2, zero_loop_end
+  bge x26, x27, zero_loop_end
 
 zero_loop:
   sw x0, 0(x1)
-  addi x1, x1, 4
-  ble x1, x2, zero_loop
+  addi x26, x26, 4
+  ble x26, x27, zero_loop
 zero_loop_end:
-
-  mv x1, x0
-  mv x2, x0
 
   /* Run global initialization functions */
 //  call    __libc_init_array

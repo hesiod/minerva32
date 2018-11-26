@@ -26,14 +26,19 @@ library:
   - clash-prelude
   - data-default-class
   - ghc-typelits-natnormalise
+  - ghc-typelits-knownnat
   - ghc-typelits-extra
   - deepseq
+  - lens
+  - interpolate
   exposed-modules:
   - Types
   - Stage.InstrFetch
   - Stage.InstrDecode
   - Stage.Execute
   - Stage.Writeback
+  - Primitives.PLL
+  - Primitives.DSP
   - Top
 
 tests:
